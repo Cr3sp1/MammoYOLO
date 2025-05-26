@@ -204,3 +204,8 @@ pyrightconfig.json
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/jupyternotebooks,visualstudiocode,python
+
+
+# Add data
+*.dcm
+data/Raw/
