@@ -1,0 +1,1 @@
+This project aims to build a neural network implementing the YOLO approach to object detection to detect and classify lesions in mammograms.
