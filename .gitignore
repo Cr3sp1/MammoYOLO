@@ -208,4 +208,6 @@ pyrightconfig.json
 
 # Add data
 *.dcm
-data/Raw/
+*.csv
+data/manifest-ZkhPvrLo5216730872708713142
+data/dataset
