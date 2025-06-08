@@ -53,22 +53,46 @@ for lesion_csv, split in lesion_files.items():
     lesions = pd.read_csv(lesion_csv)
     # print(f"Number of lesions found: {len(lesions)}")
     for _, row in tqdm(lesions.iterrows(), total=len(lesions), desc=f"Indexing {split}"):
+        full_dir = os.path.dirname(row['image file path'].replace("\\", "/").strip())
+        full_path = os.path.normpath(os.path.join(root_dir, full_dir, "1-1.dcm"))
+        pathology = pathology_to_class(row['pathology'].strip().upper())
         roi_dir = os.path.dirname(row['ROI mask file path'].replace("\\", "/").strip())
         roi_path = os.path.join(root_dir, roi_dir, "1-2.dcm")
         if not os.path.isfile(roi_path): 
             roi_path = os.path.join(root_dir, roi_dir, "1-1.dcm")
-        full_dir = os.path.dirname(row['image file path'].replace("\\", "/").strip())
-        full_path = os.path.normpath(os.path.join(root_dir, full_dir, "1-1.dcm"))
-        pathology = pathology_to_class(row['pathology'].strip().upper())
+        
 
-        if os.path.isfile(full_path) and os.path.isfile(roi_path):
-            lesion_map[(full_path, split)].append((roi_path, pathology))
-            # print ('directory found')
-            continue
-        if not os.path.isfile(full_path):
-            print(f"Full image {full_path} not found!")
-        if not os.path.isfile(roi_path):
-            print(f"Roi image {roi_path} not found!")
+        # Try 1-2.dcm first
+        roi_path = os.path.join(root_dir, roi_dir, "1-2.dcm")
+        fallback_path = os.path.join(root_dir, roi_dir, "1-1.dcm")
+        selected_roi = None
+
+        for candidate_roi in [roi_path, fallback_path]:
+            if not os.path.isfile(candidate_roi):
+                continue
+            try:
+                mask = load_dicom_array(candidate_roi)
+                bbox = get_bbox_from_mask(mask)
+                if bbox is None:
+                    continue
+                x, y, bw, bh = bbox
+                if bw == mask.shape[1] and bh == mask.shape[0]:
+                    # Skip masks that cover entire image (likely broken)
+                    continue
+                selected_roi = (candidate_roi, bbox)
+                break
+            except Exception as e:
+                print(f"⚠️ Failed to load/process ROI {candidate_roi}: {e}")
+                continue
+
+        if os.path.isfile(full_path) and selected_roi:
+            roi_path, bbox = selected_roi
+            lesion_map[(full_path, split)].append((roi_path, pathology, bbox))
+        else:
+            if not os.path.isfile(full_path):
+                print(f"Full image {full_path} not found!")
+            if not selected_roi:
+                print(f"⚠️ No valid ROI found for {roi_dir}")
 
 # --- PROCESS ALL FULL MAMMOGRAMS (POSITIVE + NEGATIVE) --- #
 train_entries = []
@@ -96,13 +120,7 @@ for full_path, split in tqdm(all_full_splits.items(), desc="Processing all full 
         label_path = os.path.join(label_out_dir, split, img_name + ".txt")
 
         labels = []
-        for roi_path, class_id in lesion_map.get((full_path, split), []):
-            if not os.path.isfile(roi_path):
-                continue
-            mask = load_dicom_array(roi_path)
-            if mask.shape != image.shape:
-                mask = cv2.resize(mask, (w, h), interpolation=cv2.INTER_NEAREST)
-            bbox = get_bbox_from_mask(mask)
+        for roi_path, class_id, bbox in lesion_map.get((full_path, split), []):
             if bbox:
                 x, y, bw, bh = bbox
                 x = int(x * scale_x)
