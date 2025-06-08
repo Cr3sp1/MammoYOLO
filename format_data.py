@@ -8,9 +8,9 @@ from collections import defaultdict
 from sklearn.model_selection import train_test_split
 
 # --- CONFIG --- #
-manifest_dir = "manifest-ZkhPvrLo5216730872708713142"
+manifest_dir = "data/manifest-ZkhPvrLo5216730872708713142"
 root_dir = os.path.join(manifest_dir, "CBIS-DDSM")
-output_dir = "dataset"
+output_dir = "data"
 image_out_dir = os.path.join(output_dir, "images")
 label_out_dir = os.path.join(output_dir, "labels")
 for split in ["train", "val", "test"]:
@@ -18,10 +18,10 @@ for split in ["train", "val", "test"]:
     os.makedirs(os.path.join(label_out_dir, split), exist_ok=True)
 
 lesion_files = {
-    "mass_case_description_train_set.csv": "train",
-    "mass_case_description_test_set.csv": "test",
-    "calc_case_description_train_set.csv": "train",
-    "calc_case_description_test_set.csv": "test"
+    "data/mass_case_description_train_set.csv": "train",
+    "data/mass_case_description_test_set.csv": "test",
+    "data/calc_case_description_train_set.csv": "train",
+    "data/calc_case_description_test_set.csv": "test"
 }
 
 # --- LOAD METADATA --- #
@@ -90,7 +90,7 @@ for full_path, split in tqdm(all_full_splits.items(), desc="Processing all full 
         scale_x = target_size / w
         scale_y = target_size / h
         resized_image = cv2.resize(image, (target_size, target_size))
-        img_name = full_path.split(os.sep)[2]
+        img_name = full_path.split(os.sep)[3]
         img_path = os.path.join(image_out_dir, split, img_name + ".jpg")
         # print(f"Processing full image {img_name}")
         label_path = os.path.join(label_out_dir, split, img_name + ".txt")
@@ -132,4 +132,4 @@ if train_entries:
         os.rename(os.path.join(label_out_dir, "train", fname.replace(".jpg", ".txt")),
                   os.path.join(label_out_dir, "val", fname.replace(".jpg", ".txt")))
 
-print("\n✅ Done. Check: dataset/images/ and dataset/labels/")
+print("\n✅ Done. Check: data/images/ and data/labels/")
