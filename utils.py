@@ -5,14 +5,8 @@ import numpy as np
 import os
 import cv2
 
-# YOLOv1 Constants
-IMG_SIZE = 448
-GRID_SIZE = 7
-BOXES_PER_CELL = 2
-NUM_CLASSES = 2  # assuming one class for lesions
-
 # Return a (grid_size, grid_size, num_classes + 5) size label tensor 
-def parse_label_file(filepath, grid_size=7, num_classes=NUM_CLASSES):
+def parse_label_file(filepath, grid_size=7, num_classes=2):
     y_true = np.zeros((grid_size, grid_size, num_classes + 5), dtype=np.float32)
     if not os.path.isfile(filepath):
             print(f"Label file {filepath} not found!")
@@ -74,7 +68,7 @@ def draw_yolo_labels(image, label_tensor, num_classes=2, grid_size=7, class_name
     return image
 
 
-def show_examples(image_dir, label_dir, num_classes=2, grid_size=7, class_names=None, num_examples=5):
+def show_examples(image_dir, label_dir, num_classes=2, grid_size=7, class_names=["benign", "malignant"], num_examples=5):
     """
     Displays a few labeled training examples.
     """
