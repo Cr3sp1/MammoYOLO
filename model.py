@@ -8,7 +8,7 @@ S = 7
 B = 2
 IMG_SIZE = 448
 
-# Final layer of yolo
+# Final layer of yolo, reshapes previous layer
 class Yolo_Reshape(Layer):
     def __init__(self, target_shape, **kwargs):
         super(Yolo_Reshape, self).__init__(**kwargs)
@@ -44,48 +44,40 @@ def tiny_yolov1():
     inputs = Input(shape=(IMG_SIZE, IMG_SIZE, 1))
     x = Conv2D(16, (3, 3), padding='same', name='convolutional_0', use_bias=False,
                kernel_regularizer=l2(5e-4))(inputs)
-    x = BatchNormalization(name='bnconvolutional_0')(x)
     x = LeakyReLU(alpha=0.1)(x)
     x = MaxPooling2D((2, 2), strides=(2, 2), padding='same')(x)
 
     x = Conv2D(32, (3, 3), padding='same', name='convolutional_1', use_bias=False,
                kernel_regularizer=l2(5e-4))(x)
-    x = BatchNormalization(name='bnconvolutional_1')(x)
     x = LeakyReLU(alpha=0.1)(x)
     x = MaxPooling2D((2, 2), strides=(2, 2), padding='same')(x)
 
     x = Conv2D(64, (3, 3), padding='same', name='convolutional_2', use_bias=False,
                kernel_regularizer=l2(5e-4))(x)
-    x = BatchNormalization(name='bnconvolutional_2')(x)
     x = LeakyReLU(alpha=0.1)(x)
     x = MaxPooling2D((2, 2), strides=(2, 2), padding='same')(x)
 
     x = Conv2D(128, (3, 3), padding='same', name='convolutional_3', use_bias=False,
                kernel_regularizer=l2(5e-4))(x)
-    x = BatchNormalization(name='bnconvolutional_3')(x)
     x = LeakyReLU(alpha=0.1)(x)
     x = MaxPooling2D((2, 2), strides=(2, 2), padding='same')(x)
 
     x = Conv2D(256, (3, 3), padding='same', name='convolutional_4', use_bias=False,
                kernel_regularizer=l2(5e-4))(x)
-    x = BatchNormalization(name='bnconvolutional_4')(x)
     x = LeakyReLU(alpha=0.1)(x)
     x = MaxPooling2D((2, 2), strides=(2, 2), padding='same')(x)
 
     x = Conv2D(512, (3, 3), padding='same', name='convolutional_5', use_bias=False,
                kernel_regularizer=l2(5e-4))(x)
-    x = BatchNormalization(name='bnconvolutional_5')(x)
     x = LeakyReLU(alpha=0.1)(x)
     x = MaxPooling2D((2, 2), strides=(2, 2), padding='same')(x)
 
     x = Conv2D(1024, (3, 3), padding='same', name='convolutional_6', use_bias=False,
                kernel_regularizer=l2(5e-4))(x)
-    x = BatchNormalization(name='bnconvolutional_6')(x)
     x = LeakyReLU(alpha=0.1)(x)
 
     x = Conv2D(256, (3, 3), padding='same', name='convolutional_7', use_bias=False,
                kernel_regularizer=l2(5e-4))(x)
-    x = BatchNormalization(name='bnconvolutional_7')(x)
     x = LeakyReLU(alpha=0.1)(x)
 
     x = Flatten()(x)
