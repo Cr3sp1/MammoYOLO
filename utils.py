@@ -1,3 +1,4 @@
+from model import C, S, B, IMG_SIZE
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import tensorflow as tf
@@ -6,7 +7,7 @@ import os
 import cv2
 
 # Return a (grid_size, grid_size, num_classes + 5) size label tensor 
-def parse_label_file(filepath, grid_size=7, num_classes=2):
+def parse_label_file(filepath, grid_size=S, num_classes=C):
     y_true = np.zeros((grid_size, grid_size, num_classes + 5), dtype=np.float32)
     if not os.path.isfile(filepath):
             print(f"Label file {filepath} not found!")
@@ -33,7 +34,7 @@ def parse_label_file(filepath, grid_size=7, num_classes=2):
     return y_true
 
 
-def draw_yolo_labels(image, label_tensor, num_classes=2, grid_size=7, class_names=None):
+def draw_yolo_labels(image, label_tensor, num_classes=C, grid_size=S, class_names=["benign", "malignant"]):
     """
     Draws YOLO-style bounding boxes on the image based on label tensor.
     `label_tensor` is (grid_size, grid_size, num_classes + 5)
@@ -68,7 +69,7 @@ def draw_yolo_labels(image, label_tensor, num_classes=2, grid_size=7, class_name
     return image
 
 
-def show_examples(image_dir, label_dir, num_classes=2, grid_size=7, class_names=["benign", "malignant"], num_examples=5):
+def show_examples(image_dir, label_dir, num_classes=C, grid_size=S, class_names=["benign", "malignant"], num_examples=5):
     """
     Displays a few labeled training examples.
     """
@@ -99,7 +100,7 @@ def show_examples(image_dir, label_dir, num_classes=2, grid_size=7, class_names=
         plt.show()
 
 
-def show_batch(img_ids, img_dir="data/images/train", label_dir="data/labels/train", num_classes=2, grid_size=7, cols=3, class_names=["benign", "malignant"]):
+def show_batch(img_ids, img_dir="data/images/train", label_dir="data/labels/train", num_classes=C, grid_size=S, cols=3, class_names=["benign", "malignant"]):
     rows = (len(img_ids) + cols - 1) // cols
     fig, axes = plt.subplots(rows, cols, figsize=(15, 5 * rows))
 

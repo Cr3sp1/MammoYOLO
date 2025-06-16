@@ -207,8 +207,13 @@ pyrightconfig.json
 # End of https://www.toptal.com/developers/gitignore/api/jupyternotebooks,visualstudiocode,python
 
 
-# Add data
+# Data
 *.dcm
 data/manifest-ZkhPvrLo5216730872708713142
 data/images
 data/labels
+
+# Training output
+logs/
+checkpoints/
+history/

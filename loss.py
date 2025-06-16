@@ -2,11 +2,7 @@
 # || |_
 
 import keras.backend as K
-
-C = 2
-S = 7
-B = 2
-IMG_SIZE = 448
+from model import C, S, B, IMG_SIZE
 
 def xywh2minmax(xy, wh):
     xy_min = xy - wh / 2
@@ -25,7 +21,7 @@ def iou(pred_mins, pred_maxes, true_mins, true_maxes):
     true_areas = true_wh[..., 0] * true_wh[..., 1]
 
     union_areas = pred_areas + true_areas - intersect_areas
-    return intersect_areas / union_areas
+    return intersect_areas / (union_areas + 1e-6)
 
 def yolo_head(feats):
     conv_dims = K.shape(feats)[1:3]  # (7, 7)
@@ -47,21 +43,21 @@ def yolo_head(feats):
     return box_xy, box_wh
 
 def yolo_loss(y_true, y_pred):
-    label_class = y_true[..., :C]                  # ? x 7 x 7 x 2
-    label_box = y_true[..., C:C+4]       # ? x 7 x 7 x 4
-    response_mask = y_true[..., C+4]               # ? x 7 x 7
-    response_mask = K.expand_dims(response_mask)             # ? x 7 x 7 x 1
+    label_class = y_true[..., :C]                  # batch x 7 x 7 x 2
+    label_box = y_true[..., C:C+4]       # batch x 7 x 7 x 4
+    response_mask = y_true[..., C+4]               # batch x 7 x 7
+    response_mask = K.expand_dims(response_mask)             # batch x 7 x 7 x 1
 
-    predict_class = y_pred[..., :C]                # ? x 7 x 7 x 2
-    predict_trust = y_pred[..., C:C+B]   # ? x 7 x 7 x 2
-    predict_box = y_pred[..., C+B:]   # ? x 7 x 7 x 8
+    predict_class = y_pred[..., :C]                # batch x 7 x 7 x 2
+    predict_trust = y_pred[..., C:C+B]   # batch x 7 x 7 x 2
+    predict_box = y_pred[..., C+B:]   # batch x 7 x 7 x 8
 
     _label_box = K.reshape(label_box, [-1, S, S, 1, 4])
     _predict_box = K.reshape(predict_box, [-1, S, S, B, 4])
 
     label_xy, label_wh = yolo_head(_label_box)
-    label_xy = K.expand_dims(label_xy, 3)
-    label_wh = K.expand_dims(label_wh, 3)
+    label_xy = K.expand_dims(label_xy, axis=4)
+    label_wh = K.expand_dims(label_wh, axis=4)
     label_xy_min, label_xy_max = xywh2minmax(label_xy, label_wh)
 
     predict_xy, predict_wh = yolo_head(_predict_box)
@@ -73,7 +69,7 @@ def yolo_loss(y_true, y_pred):
     best_ious = K.max(iou_scores, axis=4)
     best_box = K.max(best_ious, axis=3, keepdims=True)
 
-    box_mask = K.cast(best_ious >= best_box, K.dtype(best_ious))  # ? x 7 x 7 x 2
+    box_mask = K.cast(best_ious >= best_box, K.dtype(best_ious))  # batch x 7 x 7 x 2
 
     no_object_loss = 0.5 * (1 - box_mask * response_mask) * K.square(0 - predict_trust)
     object_loss = box_mask * response_mask * K.square(1 - predict_trust)
@@ -89,7 +85,7 @@ def yolo_loss(y_true, y_pred):
     predict_xy, predict_wh = yolo_head(_predict_box)
 
     box_loss = 5 * box_mask * response_mask * K.square((label_xy - predict_xy) / IMG_SIZE)
-    box_loss += 5 * box_mask * response_mask * K.square((K.sqrt(label_wh) - K.sqrt(predict_wh)) / IMG_SIZE)
+    box_loss += 5 * box_mask * response_mask * K.square((K.sqrt(K.maximum(label_wh, 1e-6)) - K.sqrt(K.maximum(predict_wh, 1e-6))) / IMG_SIZE)
     box_loss = K.sum(box_loss)
 
     return confidence_loss + class_loss + box_loss
