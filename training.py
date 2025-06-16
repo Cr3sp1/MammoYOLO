@@ -1,6 +1,6 @@
 from utils import parse_label_file
 from loss import yolo_loss
-from model import C, S, B, IMG_SIZE, tiny_yolov1
+from model import C, S, B, IMG_SIZE, yolov1, tiny_yolov1
 import tensorflow as tf
 import numpy as np
 import pandas as pd
@@ -44,22 +44,29 @@ def create_yolo_dataset(image_dir, label_dir, num_classes=2, batch_size=16, shuf
 
 
 if __name__ == "__main__":
-    model_tiny = tiny_yolov1()
+    # tf.debugging.set_log_device_placement(True)
+    
+    # Enable memory growth
+    gpus = tf.config.experimental.list_physical_devices('GPU')
+    if gpus:
+        try:
+            for gpu in gpus:
+                tf.config.experimental.set_memory_growth(gpu, True)
+        except RuntimeError as e:
+            print(e)
 
     train_ds = create_yolo_dataset(
     image_dir='data/images/train',
     label_dir='data/labels/train',
-    batch_size=16
+    batch_size=8
     )
 
     val_ds = create_yolo_dataset(
         image_dir='data/images/val',
         label_dir='data/labels/val',
-        batch_size=16,
+        batch_size=8,
         shuffle=False
     )
-
-    model_tiny.compile(optimizer='adam', loss=yolo_loss)
 
     # Callbacks
     early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
@@ -72,21 +79,35 @@ if __name__ == "__main__":
         verbose=1
     )
 
-    # tensorboard = tf.keras.callbacks.TensorBoard(log_dir="logs/yolo", histogram_freq=1)
-    # checkpoint = tf.keras.callbacks.ModelCheckpoint(
-    #     filepath='checkpoints/yolo_best.h5',
-    #     monitor='val_loss',
-    #     save_best_only=True,
-    #     save_weights_only=True,
-    #     verbose=1
-    # )
+    tensorboard = tf.keras.callbacks.TensorBoard(log_dir="logs/yolo", histogram_freq=1)
+    checkpoint = tf.keras.callbacks.ModelCheckpoint(
+        filepath='checkpoints/yolo_best.h5',
+        monitor='val_loss',
+        save_best_only=True,
+        save_weights_only=True,
+        verbose=1
+    )
 
+    model_tiny = tiny_yolov1()
+    model_tiny.compile(optimizer='adam', loss=yolo_loss)
+    model_tiny.summary()
     history_tiny = model_tiny.fit(
     train_ds,
     validation_data=val_ds,
     epochs=100,
     callbacks=[early_stopping, tensorboard_tiny, checkpoint_tiny]
     )
-
     history_tiny_df = pd.DataFrame(history_tiny.history)
     history_tiny_df.to_csv('history/training_tiny.csv', index=False)
+
+    model = yolov1()
+    model.compile(optimizer='adam', loss=yolo_loss)
+    model.summary()
+    history = model.fit(
+    train_ds,
+    validation_data=val_ds,
+    epochs=100,
+    callbacks=[early_stopping, tensorboard, checkpoint]
+    )
+    history_df = pd.DataFrame(history.history)
+    history_df.to_csv('history/training.csv', index=False)
