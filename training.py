@@ -88,8 +88,11 @@ if __name__ == "__main__":
         verbose=1
     )
 
+    os.makedirs("history", exist_ok=True)
+
     model_tiny = tiny_yolov1()
-    model_tiny.compile(optimizer='adam', loss=yolo_loss)
+    learning_rate_tiny = 1e-5
+    model_tiny.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate_tiny), loss=yolo_loss)
     model_tiny.summary()
     history_tiny = model_tiny.fit(
     train_ds,
@@ -101,7 +104,8 @@ if __name__ == "__main__":
     history_tiny_df.to_csv('history/training_tiny.csv', index=False)
 
     model = yolov1()
-    model.compile(optimizer='adam', loss=yolo_loss)
+    learning_rate = 1e-5
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate), loss=yolo_loss)
     model.summary()
     history = model.fit(
     train_ds,

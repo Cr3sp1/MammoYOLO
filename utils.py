@@ -34,6 +34,55 @@ def parse_label_file(filepath, grid_size=S, num_classes=C):
     return y_true
 
 
+def label_tensor_to_boxes(label_tensor, grid_size=S, num_classes=C):
+    """
+    Tranform ground truth label tensor to a np.array with shape (n_boxes, 5)
+    containing all boxes with format [class_id, x_center, y_center, bw, bh].
+    """
+    boxes = []
+ 
+    for i in range(grid_size):
+        for j in range(grid_size):
+            cell = label_tensor[i, j]
+
+            response = cell[num_classes + 4]
+            if response == 1:
+                class_id = np.argmax(cell[:num_classes])
+                cx, cy, bw, bh = cell[num_classes:num_classes+4]
+
+                x_center = (j + cx)/ grid_size
+                y_center = (i + cy)/ grid_size
+
+                boxes.append([class_id, x_center, y_center, bw, bh])
+    
+    return np.array(boxes)
+
+def pred_tensor_to_boxes(label_tensor, grid_size=S, num_classes=C, num_boxes=B):
+    boxes = []
+
+    for i in range(grid_size):
+        for j in range(grid_size):
+            cell = label_tensor[i, j]
+            cond_class_probs = cell[:num_classes]
+
+            for b in range(num_boxes):
+                base = num_classes + b * 5
+                cx, cy, bw, bh, conf = cell[base : base + 5]
+
+                # Convert to global image coordinates (normalized)
+                x_center = (j + cx) / grid_size
+                y_center = (i + cy) / grid_size
+
+                # Confidence-weighted class probabilities
+                class_scores = cond_class_probs * conf
+
+                # For multi-class: store all class probabilities
+                boxes.append(np.concatenate([class_scores, [x_center, y_center, bw, bh, conf]]))
+
+    return np.array(boxes)
+
+
+
 def draw_yolo_labels(image, label_tensor, num_classes=C, grid_size=S, class_names=["benign", "malignant"]):
     """
     Draws YOLO-style bounding boxes on the image based on label tensor.
