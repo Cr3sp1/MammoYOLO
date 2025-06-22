@@ -1,6 +1,8 @@
 # Lesion detection and classification in mammograms with YOLOv1 and TinyYOLOv1 models using Keras
 
-In this project we build YOLOv1 and TinyYOLOv1 models using the Keras api with the objective of detecting and classifying lesions in mammograms.
+In this project we build YOLOv1 and TinyYOLOv1 models as presented in the [original article](refs/Yolo.pdf) using the Keras api with the objective of detecting and classifying lesions in mammograms. We perform the training on the [DDSM dataset](refs/CBIS-DDSM.pdf), and compare our results with the ones obtained by [Ribli et al.](refs/CBIS-DDSM.pdf).
+
+## Results
 
 ## Instructions
 
@@ -18,7 +20,7 @@ To train the models run the command:
 
 ### Step 4 - Evaluate performance
 To to evaluate the models performance via ROC and FROC curve run the command:
-`python training.py`
+`python performance_eval.py`
 
 ### Step 5 - Visualize the results
-The results of the training and model evaluation can be visualized in the Jupyter Notebook 'Results.ipynb'.
+The results of the training and model evaluation can be visualized in the [Jupyter Notebook](Results.ipynb), in which one can also perform prediction on specific images.
