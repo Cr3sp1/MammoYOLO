@@ -1,9 +1,7 @@
 import os
-import cv2
 import numpy as np
-import tensorflow as tf
 import pandas as pd
-import matplotlib.pyplot as plt
+import keras
 from model import IMG_SIZE, C, S
 from sklearn.metrics import roc_curve, roc_auc_score
 from training import create_yolo_dataset
@@ -45,7 +43,8 @@ def collect_predictions(model, dataset):
             # Get GT boxes for class 1 (malignant)
             gt_boxes = gt_boxes[gt_boxes[:, 0] == 1][:, 1:]
             all_gt_boxes.append(gt_boxes)
-            y_true.append(1 if len(gt_boxes) != 0 else 0)
+            y_true_i = 1 if len(gt_boxes) != 0 else 0
+            y_true.append(y_true_i)
             n_images += 1
 
             max_score = 0
@@ -55,11 +54,11 @@ def collect_predictions(model, dataset):
                 max_score = max(max_score, score)
             
             y_scores.append(max_score)
-                
+            # print( f"y_true: {y_true_i}, y_score: {max_score}")   
 
     return all_pred_boxes, all_gt_boxes, n_images, np.array(y_true), np.array(y_scores)
 
-def compute_froc_from_predictions(pred_boxes_lists, gt_boxes_list, n_images, thresholds=np.linspace(0.0, 1.0, 50)):
+def compute_froc_from_predictions(pred_boxes_lists, gt_boxes_list, n_images, thresholds=np.linspace(0.0, 1.0, 1000)):
     froc_points = []
     total_gt = sum(len(gt) for gt in gt_boxes_list)
 
@@ -124,15 +123,17 @@ def evaluate_and_save(model, test_dataset, output_dir, model_name):
 # ---- Script ----
 
 if __name__ == "__main__":
-    # Load dataset and models
-    test_dataset = create_yolo_dataset('data/images/test', 'data/labels/test', batch_size=1)
-    model_tiny = tiny_yolov1()
-    model = yolov1()
-    model_tiny.load_weights('checkpoints/tiny_yolo_best.h5')
-    model.load_weights('checkpoints/yolo_best.h5')
+    keras.utils.set_random_seed(812)
 
+    # Load dataset
+    test_dataset = create_yolo_dataset('data/images/test', 'data/labels/test', batch_size=1)
+
+    # print("Evaluating tiny_yolov1 performance...")
+    # model_tiny = tiny_yolov1()
+    # model_tiny.load_weights('checkpoints/tiny_yolo_best.h5')
+    # evaluate_and_save(model_tiny, test_dataset, "performance", "tiny_yolo")
     
-    output_dir = "performance"
-    # Evaluate and save
-    evaluate_and_save(model_tiny, test_dataset, output_dir, "tiny_yolo")
-    evaluate_and_save(model, test_dataset, output_dir, "yolo")
+    print("Evaluating yolov1 performance...")
+    model = yolov1()
+    model.load_weights('checkpoints/yolo_best.h5')
+    evaluate_and_save(model, test_dataset, "performance", "yolo")

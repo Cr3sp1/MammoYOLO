@@ -2,7 +2,10 @@
 # || |_
 
 import keras.backend as K
-from model import C, S, B, IMG_SIZE
+from model import C, S, B
+
+LAMBDA_COORD=5
+LAMBDA_NOOBJ=0.5
 
 def xywh2minmax(xy, wh):
     xy_min = xy - wh / 2
@@ -21,7 +24,7 @@ def iou(pred_mins, pred_maxes, true_mins, true_maxes):
     true_areas = true_wh[..., 0] * true_wh[..., 1]
 
     union_areas = pred_areas + true_areas - intersect_areas
-    return intersect_areas / (union_areas + 1e-6)
+    return intersect_areas / (union_areas + 1e-10)
 
 def yolo_head(feats):
     conv_dims = K.shape(feats)[1:3]  # (7, 7)
@@ -37,8 +40,8 @@ def yolo_head(feats):
 
     conv_dims = K.cast(K.reshape(conv_dims, [1, 1, 1, 1, 2]), K.dtype(feats))
 
-    box_xy = (feats[..., :2] + conv_index) / conv_dims * IMG_SIZE
-    box_wh = feats[..., 2:4] * IMG_SIZE
+    box_xy = (feats[..., :2] + conv_index) / conv_dims
+    box_wh = feats[..., 2:4]
 
     return box_xy, box_wh
 
@@ -71,7 +74,7 @@ def yolo_loss(y_true, y_pred):
 
     box_mask = K.cast(best_ious >= best_box, K.dtype(best_ious))  # batch x 7 x 7 x 2
 
-    no_object_loss = 0.5 * (1 - box_mask * response_mask) * K.square(0 - predict_trust)
+    no_object_loss = LAMBDA_NOOBJ * (1 - box_mask * response_mask) * K.square(0 - predict_trust)
     object_loss = box_mask * response_mask * K.square(1 - predict_trust)
     confidence_loss = K.sum(no_object_loss + object_loss)
 
@@ -84,8 +87,9 @@ def yolo_loss(y_true, y_pred):
     label_xy, label_wh = yolo_head(_label_box)
     predict_xy, predict_wh = yolo_head(_predict_box)
 
-    box_loss = 5 * box_mask * response_mask * K.square((label_xy - predict_xy) / IMG_SIZE)
-    box_loss += 5 * box_mask * response_mask * K.square((K.sqrt(K.maximum(label_wh, 1e-6)) - K.sqrt(K.maximum(predict_wh, 1e-6))) / IMG_SIZE)
+    box_loss = LAMBDA_COORD * box_mask * response_mask * K.square(label_xy - predict_xy) 
+    box_loss += LAMBDA_COORD * box_mask * response_mask * K.square(K.sqrt(K.maximum(label_wh, 1e-10)) - K.sqrt(K.maximum(predict_wh, 1e-10)))
     box_loss = K.sum(box_loss)
 
-    return confidence_loss + class_loss + box_loss
+    loss = (confidence_loss + class_loss + box_loss) / K.cast(K.shape(y_pred)[0], K.floatx())
+    return loss
