@@ -128,10 +128,10 @@ if __name__ == "__main__":
     # Load dataset
     test_dataset = create_yolo_dataset('data/images/test', 'data/labels/test', batch_size=1)
 
-    # print("Evaluating tiny_yolov1 performance...")
-    # model_tiny = tiny_yolov1()
-    # model_tiny.load_weights('checkpoints/tiny_yolo_best.h5')
-    # evaluate_and_save(model_tiny, test_dataset, "performance", "tiny_yolo")
+    print("Evaluating tiny_yolov1 performance...")
+    model_tiny = tiny_yolov1()
+    model_tiny.load_weights('checkpoints/tiny_yolo_best.h5')
+    evaluate_and_save(model_tiny, test_dataset, "performance", "tiny_yolo")
     
     print("Evaluating yolov1 performance...")
     model = yolov1()

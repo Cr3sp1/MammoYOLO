@@ -93,18 +93,18 @@ if __name__ == "__main__":
 
     os.makedirs("history", exist_ok=True)
 
-    # model_tiny = tiny_yolov1()
-    # optimizer_tiny = tf.keras.optimizers.Adam(learning_rate=1e-4)
-    # model_tiny.compile(optimizer=optimizer_tiny, loss=yolo_loss)
-    # model_tiny.summary()
-    # history_tiny = model_tiny.fit(
-    # train_ds,
-    # validation_data=val_ds,
-    # epochs=1000,
-    # callbacks=[early_stopping, checkpoint_tiny, tensorboard_tiny]
-    # )
-    # history_tiny_df = pd.DataFrame(history_tiny.history)
-    # history_tiny_df.to_csv('history/training_tiny.csv', index=False)
+    model_tiny = tiny_yolov1()
+    optimizer_tiny = tf.keras.optimizers.Adam(learning_rate=1e-4)
+    model_tiny.compile(optimizer=optimizer_tiny, loss=yolo_loss)
+    model_tiny.summary()
+    history_tiny = model_tiny.fit(
+    train_ds,
+    validation_data=val_ds,
+    epochs=1000,
+    callbacks=[early_stopping, checkpoint_tiny, tensorboard_tiny]
+    )
+    history_tiny_df = pd.DataFrame(history_tiny.history)
+    history_tiny_df.to_csv('history/training_tiny.csv', index=False)
 
     model = yolov1()
     optimizer = tf.keras.optimizers.Adam(learning_rate=1e-5)
