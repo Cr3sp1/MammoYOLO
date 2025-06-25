@@ -93,7 +93,7 @@ def pred_tensor_to_boxes(label_tensor, grid_size=S, num_classes=C, num_boxes=B):
     return np.array(boxes)
 
 
-def show_batch(img_ids, img_dir="data/images/train", label_dir="data/labels/train", num_classes=C, grid_size=S, cols=3, class_names=["Benign", "Malignant"]):
+def show_batch(img_ids, img_dir="data/images/train", label_dir="data/labels/train", num_classes=C, grid_size=S, cols=3):
     rows = (len(img_ids) + cols - 1) // cols
     fig, axes = plt.subplots(rows, cols, figsize=(15, 5 * rows))
 
@@ -124,11 +124,11 @@ def show_batch(img_ids, img_dir="data/images/train", label_dir="data/labels/trai
         label_boxes = label_tensor_to_boxes(label_tensor)
         for box in label_boxes:
             class_id, x_center, y_center, bw, bh = box
-            label_text = class_names[int(class_id)] if class_names else f"Class {class_id}"
+            label_text = "Benign" if class_id == 0 else "Malignant"
             bw *= IMG_SIZE
             bh *= IMG_SIZE
             x_min= x_center*IMG_SIZE - bw / 2
-            y_min= y_center*IMG_SIZE - bw / 2
+            y_min= y_center*IMG_SIZE - bh / 2
             rect = patches.Rectangle((x_min, y_min), bw, bh, linewidth=2, edgecolor='red', facecolor='none')
             ax.add_patch(rect)
             ax.text(x_min, y_min - 5, label_text, color='red', fontsize=8, backgroundcolor='white')
