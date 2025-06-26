@@ -71,8 +71,7 @@ if __name__ == "__main__":
     )
 
     # Callbacks
-    early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
-
+    early_stopping_tiny = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
     tensorboard_tiny = TensorBoard(log_dir="logs/tiny_yolo", histogram_freq=1)
     checkpoint_tiny = ModelCheckpoint(
         filepath='checkpoints/tiny_yolo_best.h5',
@@ -82,6 +81,7 @@ if __name__ == "__main__":
         verbose=1
     )
 
+    early_stopping = EarlyStopping(monitor='val_loss', patience=30, restore_best_weights=True)
     tensorboard = TensorBoard(log_dir="logs/yolo", histogram_freq=1)
     checkpoint = ModelCheckpoint(
         filepath='checkpoints/yolo_best.h5',
