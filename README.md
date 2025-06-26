@@ -21,11 +21,11 @@ We use the YOLO architecture to detect lesions and classify them as either "mali
 We evaluate the performance of our two models on the test set of the DDSM dataset, which was not used during training. We focus in particular on the ability of our models to find malignant lesions.
 We consider that our models predicts the presence of cancer in a mammography with a certain threshold if there is at least one box with a malignant score above the threshold. This way we can classify whole mammograms as either indicating the presence of cancer or not.
 We then measure the models' ability to correctly perform this classification task with the receiver operating characteristic (ROC) curve:
-![roc](https://github.com/user-attachments/assets/f1e12db1-f893-4bd4-9d08-44ee72bb93e3)
-We see that the TinyYOLOv1 model somewhat works, while the full YOLO model fails spectacularly, ending up being even worse that random guessing. This could be due to insufficient training. As a comparison, the Faster R-CNN model achieved an AUC of 0.95.
+![roc](https://github.com/user-attachments/assets/fc4499c5-00cf-4e30-8132-a25ff36b74fe)
+We see that the TinyYOLOv1 model somewhat works, while the full YOLO performs worse. This could be due to insufficient training. As a comparison, the Faster R-CNN model achieved an AUC of 0.95.
 We also measure our models' ability to accurately localize the malignant lesions via the Free ROC (FROC) curve. On the y-axis is the percentage of malignant lesions detected within a certain threshold (ie: there exists at least one box with malignant score aboove the threshold whose center falls within a ground truth box), while on the x-axis is the number of false positives (ie: the number of boxes with malignant score above the threshold that do not fall within a ground truth box).
-![froc](https://github.com/user-attachments/assets/93f184a7-7943-43d3-97e4-c9438a5885ac)
-We note that at 0.3 false positives per image our models achieve a sensitivity (true positive rate) of respectively 0.1 and 0.07, to compare with the sensitivity of 0.9 achieved by the Faster R-CNN.
+![froc](https://github.com/user-attachments/assets/1ad97da5-1a28-4681-9671-a58ea552a982)
+We note that at 0.3 false positives per image our models achieve a sensitivity (true positive rate) of around 0.08, to compare with the sensitivity of 0.9 achieved by the Faster R-CNN.
 
 ## Example predictions
 ![pred1](https://github.com/user-attachments/assets/3c299e60-8bb7-44bf-854b-dd0bc849b6d7)
